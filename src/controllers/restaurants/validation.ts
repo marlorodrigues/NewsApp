@@ -1,6 +1,5 @@
-import Ajv from "ajv"
+import Joi from "joi"
 
-const ajv = new Ajv()
 
 export function RestaurantData(data: any, is_update: boolean) {
     let required_fields = ["name", "address", "types", "company_register"]
@@ -10,25 +9,13 @@ export function RestaurantData(data: any, is_update: boolean) {
     else
         required_fields = required_fields.filter(x => x != "company_register")
 
-    let schema = {
-        type: "object",
-        properties: {
-            name: { type: "string" },
-            address: { type: "string" },
-            types: { 
-                type: "array",
-                items: { type: "number" }
-            }
-        },
-        required: required_fields,
-        additionalProperties: false
-    }
+    let schema = Joi.object({
+        name: Joi.string().required(),
+        address: Joi.string().required(),
+        types: Joi.array<number>().required()
+    })
 
-    let validate = ajv.compile(schema)
-    let valid = validate(data)
-    
-    return {
-        valid: valid,
-        errors: validate?.errors
-    }
+
+    return schema.validate(data)
 }
+

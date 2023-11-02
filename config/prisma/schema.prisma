@@ -17,6 +17,7 @@ model Restaurants {
 
   name    String @db.VarChar(50)
   address String @db.VarChar(50)
+  image   String @db.VarChar(50)
   company_register String @db.VarChar(50)
   types   Int[]
 
@@ -35,6 +36,7 @@ model Menus {
   restaurant_id BigInt
 
   name String @db.VarChar(50)
+  image  String @db.VarChar(50)
 
   @@schema("public")
   @@index([restaurant_id])
@@ -53,4 +55,13 @@ model Foods {
   @@index([name])
   @@index([menu_id])
   @@index([price])
+}
+
+model Restaurant_types {
+  type_id Int @id(map: "restaurant_types_pk") @default(autoincrement())
+
+  name String @db.VarChar(25)
+
+  @@schema("public")
+  @@index([type_id])
 }

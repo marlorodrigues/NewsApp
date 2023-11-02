@@ -1,6 +1,6 @@
 {
   "name": "SpideyEats",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SpideyEats",
   "main": "src/server.ts",
   "scripts": {
@@ -25,6 +25,7 @@
     "@fastify/etag": "^4.2.0",
     "@prisma/client": "^5.5.2",
     "fastify": "^4.12.0",
+    "joi": "^17.11.0",
     "jsonwebtoken": "^9.0.0",
     "winston": "^3.8.2"
   }

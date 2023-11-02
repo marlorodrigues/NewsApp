@@ -2,33 +2,115 @@ import { Restaurants } from '../../database/prisma'
 
 import RuntimeError from '../../utils/errors'
 import logger from '../../utils/logger'
-
+import { Listing } from '../../global/types'
 
 interface Restaurant {
-    register_id: string
+    restaurant_id: bigint | string | null 
     name: string
     address: string
     company_register: string
     type: Array<number>
+    image: string
+}
+
+async function lookup_restaurant(company_register: string | null, restaurant_id: string | bigint | null){
+    let lookup = company_register ? 'company_register' : 'resturant_id'
+    let where = company_register ? company_register : BigInt(restaurant_id!)
+
+    let exits = await Restaurants.findFirst({
+        where: {
+            [lookup]: where
+        },
+        select: {
+            restaurant_id: true
+        }
+    })
+
+    if(exits)
+        throw new RuntimeError("Restaurante já existe", '1001');
+
+    return;
 }
 
 export = {
-    async create_restaurant(data: Restaurant): Promise<string | boolean> {
+
+    async restaurants({ page, limit, order, direction }: Listing){
         try{
-            let exits = await Restaurants.findFirst({
-                where: {
-                    company_register: data.company_register
-                },
+            console.log(page, limit, order, direction)
+
+            let offset = (Number(page) - 1) * Number(limit)
+
+            let restaurants = await Restaurants.findMany({
                 select: {
-                    restaurant_id: true
+                    address: true,
+                    created_at: true,
+                    name: true,
+                    restaurant_id: true,
+                    types: true,
+                    image: true
+                },
+                skip: offset,
+                take: Number(limit),
+                orderBy: {
+                    [order]: direction
+                },
+                where: {
+                    deleted_at: null
                 }
             })
 
-            if(exits)
-                throw new RuntimeError("Restaurante já existe", '1001');
+            let total_data = await Restaurants.count({
+                where: {
+                    deleted_at: null
+                }
+            })
 
+            return {
+                data: restaurants.map(x => {
+                    let { restaurant_id, image, ...rest } = x
+
+                    return {
+                        restaurant_id: restaurant_id.toString(),
+                        image: image,
+                        ...rest
+                    }
+                }),
+                meta: {
+                    current_page: page,
+                    total_data: total_data,
+                    total_pages: Math.ceil(total_data / limit),
+                }
+            }
+
+        }
+        catch(error: any){
+            logger.error(`${error.name} - ${error.message} - ${error.stack}`)
+
+            return error
+        }
+    },
+
+    async restaurant_data(data: Restaurant){
+        try{
+            await lookup_restaurant(null, data.restaurant_id)
+
+        }
+        catch(error: any){
+            logger.error(`${error.name} - ${error.message} - ${error.stack}`)
+
+            return error
+        }
+    },
+
+    async create_restaurant(data: Restaurant): Promise<string | boolean> {
+        try{
+            await lookup_restaurant(data.company_register, null)
+
+            let { restaurant_id, ...rest } = data
             await Restaurants.create({
-                data: { ...data },
+                data: {  
+                    ...rest
+                },
                 select: {
                     restaurant_id: true
                 }
@@ -39,10 +121,32 @@ export = {
         catch(error: any){
             logger.error(`${error.name} - ${error.message} - ${error.stack}`)
 
-            if(error instanceof RuntimeError)
-                return error.message
+            return error
+        }
+    },
 
-            return error.message
+    async modify_restaurant(data: Restaurant) {
+        try{
+            await lookup_restaurant(null, data.restaurant_id)
+
+        }
+        catch(error: any){
+            logger.error(`${error.name} - ${error.message} - ${error.stack}`)
+
+            return error
+        }
+    },
+
+    async delete_restaurant(data: Restaurant){
+        try{
+            await lookup_restaurant(null, data.restaurant_id)
+
+
+        }
+        catch(error: any){
+            logger.error(`${error.name} - ${error.message} - ${error.stack}`)
+
+            return error
         }
     }
 }
