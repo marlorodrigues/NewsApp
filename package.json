@@ -1,10 +1,15 @@
 {
-  "name": "backend",
-  "version": "0.0.2",
-  "description": "Backend",
+  "name": "SpideyEats",
+  "version": "0.1.0",
+  "description": "SpideyEats",
   "main": "src/server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc --removeComments true --pretty false --listEmittedFiles true",
+    "dev": "npx ts-node src/server.ts",
+    "db:pull": "npx prisma db pull --schema ./config/prisma/schema.prisma ; npx prisma generate --schema ./config/prisma/schema.prisma",
+    "db:migrate": "npx prisma migrate dev --schema ./config/prisma/schema.prisma",
+    "db:generate": "npx prisma generate --schema ./config/prisma/schema.prisma",
+    "db:studio": "npx prisma studio --schema ./config/prisma/schema.prisma"
   },
   "author": "Marlo Rodrigues",
   "license": "MIT",
@@ -18,6 +23,7 @@
     "@fastify/compress": "^6.5.0",
     "@fastify/cors": "^8.2.0",
     "@fastify/etag": "^4.2.0",
+    "@prisma/client": "^5.5.2",
     "fastify": "^4.12.0",
     "jsonwebtoken": "^9.0.0",
     "winston": "^3.8.2"

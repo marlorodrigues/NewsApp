@@ -1,20 +1,13 @@
 import { FastifyInstance } from 'fastify'
-import { Node_Env } from './types/global'
-
-const env: Node_Env = require('../.env.json')
 
 import fs from 'fs'
 import path from 'path'
-import cors from '@fastify/cors'
-import compress from '@fastify/compress'
 
-import helpers from './helpers/index'
 import routes from './controllers/index'
-
-import Etag from '@fastify/etag'
 import logger from './utils/logger'
+import gracefully from './utils/gracefully'
 
-async function __init__() {
+async function init_http_server() {
     const fastify: FastifyInstance = require('fastify')({
         logger: false,
         http2: false,
@@ -35,7 +28,7 @@ async function __init__() {
 
 async function registers(fastify: FastifyInstance) {
     await fastify.register(
-        import('@fastify/compress'),
+        await import('@fastify/compress'),
         {
             threshold: 1024,
             global: true,
@@ -43,15 +36,16 @@ async function registers(fastify: FastifyInstance) {
             inflateIfDeflated: true,
             zlibOptions: {
                 level: 9,
-            }
+            },
         }
     )
 
-    await fastify.register(Etag, {
-        algorithm: 'sha1'
+    await fastify.register(await import('@fastify/etag'), {
+        algorithm: 'sha1',
+        weak: false
     })
 
-    await fastify.register(cors, {
+    await fastify.register(await import('@fastify/cors'), {
         allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'Content-Encoding', "Accept-Encoding", 'Cache-Control'],
         methods: ['OPTIONS', 'GET', 'PUT', 'POST', 'PATCH', 'DELETE'],
         optionsSuccessStatus: 204,
@@ -74,8 +68,24 @@ async function add_routes(fastify: FastifyInstance) {
 }
 
 async function add_hooks(fastify: FastifyInstance) {
-    fastify.addHook('onRequest', hooks.valid_request)
+    // fastify.addHook('onRequest', hooks.valid_request)
     // fastify.addHook('onSend', hooks.valid_eTAG) //Fastify already do this internally
 }
 
-export default __init__
+process.on('SIGINT', gracefully.SIGINT)
+process.on('uncaughtException', gracefully.uncaughtException)
+process.on('unhandledRejection', gracefully.unhandledRejection)
+
+async function __init__(){
+    const server = await init_http_server()
+
+    server.listen({ port: 3000 }, (error: any, address: string) => {
+        if (error)
+            logger.info(`${error.message} - ${error.stack}`)
+        else {
+            logger.info(`Server Running on ${address}`)
+        }
+    })
+}
+
+__init__()
