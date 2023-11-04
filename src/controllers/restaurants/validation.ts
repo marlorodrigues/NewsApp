@@ -1,20 +1,27 @@
 import Joi from "joi"
 
 
-export function RestaurantData(data: any, is_update: boolean) {
-    let required_fields = ["name", "address", "types", "company_register"]
+export function RestaurantData(data: any, require_id: boolean) {
+    let schema: Joi.ObjectSchema<any>
 
-    if(is_update)
-        required_fields.push("restaurant_id")
-    else
-        required_fields = required_fields.filter(x => x != "company_register")
-
-    let schema = Joi.object({
-        name: Joi.string().required(),
-        address: Joi.string().required(),
-        types: Joi.array<number>().required()
-    })
-
+    if(require_id){
+        schema = Joi.object({
+            restaurant_id: Joi.string().required(),
+            name: Joi.string().required(),
+            address: Joi.string().required(),
+            types: Joi.array<number>().required(),
+            company_register: Joi.string().required(),
+        }).required()
+    }
+    else {
+        schema = Joi.object({
+            restaurant_id: Joi.string().required(),
+            name: Joi.string().required(),
+            address: Joi.string().required(),
+            types: Joi.array<number>().required(),
+            company_register: Joi.string().required(),
+        }).required()
+    }
 
     return schema.validate(data)
 }

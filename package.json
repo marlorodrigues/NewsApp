@@ -1,6 +1,6 @@
 {
-  "name": "SpideyEats",
-  "version": "0.2.0",
+  "name": "spideyeats",
+  "version": "0.3.0",
   "description": "SpideyEats",
   "main": "src/server.ts",
   "scripts": {

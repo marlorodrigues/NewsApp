@@ -1,4 +1,4 @@
-export default class CustomError extends Error {
+export default class RuntimeError extends Error {
     code: string
 
     constructor(message: string, code: string) {

@@ -36,8 +36,6 @@ export = {
 
     async restaurants({ page, limit, order, direction }: Listing){
         try{
-            console.log(page, limit, order, direction)
-
             let offset = (Number(page) - 1) * Number(limit)
 
             let restaurants = await Restaurants.findMany({
@@ -92,8 +90,25 @@ export = {
 
     async restaurant_data(data: Restaurant){
         try{
-            await lookup_restaurant(null, data.restaurant_id)
+            let restaurant = Restaurants.findUniqueOrThrow({
+                where: {
+                    restaurant_id: BigInt(data.restaurant_id!)
+                },
+                select: {
+                    name: true,
+                    address: true,
+                    company_register: true,
+                    types: true,
+                    image: true,
+                    created_at: true
+                }
+            })
 
+            return {
+                restaurant_id: data.restaurant_id,
+                ...restaurant
+            }
+            
         }
         catch(error: any){
             logger.error(`${error.name} - ${error.message} - ${error.stack}`)
@@ -107,8 +122,11 @@ export = {
             await lookup_restaurant(data.company_register, null)
 
             let { restaurant_id, ...rest } = data
+
+            rest.image = "https://google.com.br";
+
             await Restaurants.create({
-                data: {  
+                data: { 
                     ...rest
                 },
                 select: {
@@ -141,7 +159,14 @@ export = {
         try{
             await lookup_restaurant(null, data.restaurant_id)
 
-
+            await Restaurants.update({
+                where: {
+                    restaurant_id: BigInt(data.restaurant_id!)
+                },
+                data: {
+                    deleted_at: new Date()
+                }
+            })
         }
         catch(error: any){
             logger.error(`${error.name} - ${error.message} - ${error.stack}`)
