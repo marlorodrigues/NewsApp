@@ -1,0 +1,2 @@
+1001 - Restaurante ja existe
+1002 - Restaurante nao encontrado

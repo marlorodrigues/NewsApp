@@ -14,7 +14,7 @@ interface Restaurant {
 }
 
 async function lookup_restaurant(company_register: string | null, restaurant_id: string | bigint | null){
-    let lookup = company_register ? 'company_register' : 'resturant_id'
+    let lookup = company_register ? 'company_register' : 'restaurant_id'
     let where = company_register ? company_register : BigInt(restaurant_id!)
 
     let exits = await Restaurants.findFirst({
@@ -157,7 +157,13 @@ export = {
 
     async delete_restaurant(data: Restaurant){
         try{
-            await lookup_restaurant(null, data.restaurant_id)
+            let exits = await Restaurants.findFirst({
+                where: { restaurant_id: BigInt(data.restaurant_id!) },
+                select: { restaurant_id: true }
+            })
+        
+            if(exits)
+                throw new RuntimeError("Restaurante não encontrado", '1002');
 
             await Restaurants.update({
                 where: {
